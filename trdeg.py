@@ -145,7 +145,6 @@ class Solver:
         assert 0 < sum(abs(pt * pr) for pt, pr in zip(point, probability))
         n = index['up'] + 1
         matrix = zeros((n, n))
-        matrix[0, 0]
         for i in range(1, n - 1):
             for pt, pr in zip(point, probability):
                 dj = pt // index['gcd']
