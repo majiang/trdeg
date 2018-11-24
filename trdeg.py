@@ -158,6 +158,21 @@ class Solver:
         self._matrix = matrix
         self._index = index
 
+    def solve(self):
+
+        class Result:
+
+            def __init__(self, up_prob, up_count, down_prob, down_count):
+                self.up_prob = up_prob
+                self.up_count = up_count
+                self.down_prob = down_prob
+                self.down_count = down_count
+
+            def __str__(self):
+                return '\t'.join(map(str, [self.up_prob, self.up_count, self.down_prob, self.down_count]))
+
+        return Result(self.up_prob(), self.up_count(), self.down_prob(), self.down_count())
+
     def probs(self, direction):
         vector = zeros(self._n)
         vector[self._index[direction]] = 1
