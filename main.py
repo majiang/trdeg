@@ -18,6 +18,61 @@ def solve_independent(player, kind):
         ret[dan] = (degree, rank, solver.solve())
     return ret
 
+def expectation_JOU(independent_results):
+    # calculate expectation of games played by the player during JOU
+    table = trdeg.Table(trdeg.TableRank.JOU, kind)
+
+    offset = 0
+
+    matrix = numpy.identity(5)
+    vector_games = numpy.zeros(5)
+
+    for dan in range(1, 4):
+        data = independent_results[dan][2]
+        down_prob = data.down_prob
+        up_prob = data.up_prob
+
+        matrix[dan-offset, dan-offset-1] = -down_prob
+        matrix[dan-offset, dan-offset+1] = -up_prob
+
+        vector_games[dan-offset] = up_prob*data.up_count + down_prob*data.down_count
+
+    # For 0-dan (1-kyu), use the following approximation:
+    # up_prob = 1, down_prob=0, up_count=0, down_count=None
+    matrix[0, 1] = -1
+    vector_games[0-offset] = 0
+    solution_games = solve(matrix, vector_games)
+    return solution_games[3-offset]
+
+def expectation_TOK(independent_results):
+    offset = 3
+    matrix = numpy.identity(5)
+    vector_upprob = numpy.zeros(5)
+    vector_dnprob = numpy.zeros(5)
+    vector_upgames = numpy.zeros(5)
+    vector_dngames = numpy.zeros(5)
+
+    for dan in range(4, 7):
+        data = independent_results[dan][2]
+        down_prob = data.down_prob
+        up_prob = data.up_prob
+
+        matrix[dan-offset, dan-offset-1] = -down_prob
+        matrix[dan-offset, dan-offset+1] = -up_prob
+
+        vector_upgames[dan-offset] = up_prob*data.up_count
+        vector_dngames[dan-offset] = down_prob*data.down_count
+
+    vector_dnprob[3-offset] = 1
+    vector_upprob[7-offset] = 1
+
+    return (
+            solve(matrix, vector_upprob)[6-offset],
+            solve(matrix, vector_dnprob)[6-offset],
+            solve(matrix, vector_upgames)[6-offset],
+            solve(matrix, vector_dngames)[6-offset]
+        )
+
 def expectation_HOU(independent_results, kind):
     # calculate expectation of points gained and games played by the player during HOU
     table = trdeg.Table(trdeg.TableRank.HOU, kind)
@@ -69,9 +124,31 @@ def expectation_HOU(independent_results, kind):
     # E[10] = p(10>11)(E[10>11]+E[11]) + p(10>9)(E[10>9]+E[9])
     # E[11] = 0 + 1(approx+E[10])
 
+def tsv(*tuples):
+    buf = ''
+    fsep = ''
+    asep = '\t'
+    for t in tuples:
+        if not isinstance(t, tuple):
+            buf += fsep + str(t)
+        else:
+            buf += fsep + asep.join(map(str, t))
+        fsep = asep
+    return buf
+
+
 if __name__ == '__main__':
+    print(tsv(
+            'kind', 'player',
+            'HOU-pt', 'HOU-gm',
+            'TOK-u-p', 'TOK-d-p', 'TOK-u-g', 'TOK-d-g',
+            'JOU-gm'))
     for kind in (trdeg.TableKind.HAN4, trdeg.TableKind.TON4):
         for player in map(trdeg.ConstantEfficiencyArithmeticProgression, [5.5, 5.6, 5.7, 5.8, 5.9, 6.0, 6.1, 6.2, 6.3, 6.4, 6.5]):
             independent_results = solve_independent(player, kind)
-            #print(independent_results)
-            print(f"{str(player)}: {expectation_HOU(independent_results, kind)}")
+            print(tsv(
+                    kind,
+                    player,
+                    expectation_HOU(independent_results, kind),
+                    expectation_TOK(independent_results),
+                    expectation_JOU(independent_results)))
