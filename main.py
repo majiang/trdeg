@@ -70,7 +70,11 @@ def expectation_TOK(independent_results):
             solve(matrix, vector_upprob)[6-offset],
             solve(matrix, vector_dnprob)[6-offset],
             solve(matrix, vector_upgames)[6-offset],
-            solve(matrix, vector_dngames)[6-offset]
+            solve(matrix, vector_dngames)[6-offset],
+            solve(matrix, vector_upprob)[4-offset],
+            solve(matrix, vector_dnprob)[4-offset],
+            solve(matrix, vector_upgames)[4-offset],
+            solve(matrix, vector_dngames)[4-offset]
         )
 
 def expectation_HOU(independent_results, kind):
@@ -141,7 +145,8 @@ if __name__ == '__main__':
     print(tsv(
             'kind', 'player',
             'HOU-pt', 'HOU-gm',
-            'TOK-u-p', 'TOK-d-p', 'TOK-u-g', 'TOK-d-g',
+            'TOK6-u-p', 'TOK6-d-p', 'TOK6-u-g', 'TOK6-d-g',
+            'TOK4-u-p', 'TOK4-d-p', 'TOK4-u-g', 'TOK4-d-g',
             'JOU-gm'))
     for kind in (trdeg.TableKind.HAN4, trdeg.TableKind.TON4):
         for player in map(trdeg.ConstantEfficiencyArithmeticProgression, [5.5, 5.6, 5.7, 5.8, 5.9, 6.0, 6.1, 6.2, 6.3, 6.4, 6.5]):
